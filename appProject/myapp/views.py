@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from .models import Room, Topic, Message
-from .forms import RoomForm
+from .forms import RoomForm, UserForm
 from django.db.models import Q
 from django.http import HttpResponse
 
@@ -182,3 +182,19 @@ def userProfile(request, pk):
     room_message = user.message_set.all()
     context = {'user': user, 'rooms': rooms, 'topics': topics, 'room_message': room_message}
     return render(request, 'myapp/profile.html', context)
+
+
+@login_required(login_url='/login')
+def updateProfile(request):
+
+    user = request.user
+    form = UserForm(instance=user)
+
+    if request.method == 'POST':
+        form = UserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('user-profile', pk=user.id)
+
+    context = {'form': form}
+    return render(request, 'myapp/update_user.html', context)
